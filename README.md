@@ -1,6 +1,7 @@
 # shell
-A simple shell program written in C
-Made by Curtis Li
+* A simple shell program written in C
+* Made by Curtis Li
+* Note: Taking name suggestions
 
 ## Features
 * Basic command line parsing
