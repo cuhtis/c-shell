@@ -9,7 +9,9 @@
 * Builtins: cd, exit
 
 ## TODO
-* Pipes
-* Redirection
-* Background processes
-* Other builtins 
+* Pipes (|)
+* Redirection (>, &>, <)
+* Background processes (&)
+* And (&&), Or (||)
+* Sub-commands
+* Other builtins
