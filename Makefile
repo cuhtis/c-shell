@@ -1,7 +1,7 @@
-CC = clang++
-CFLAGS = -std=c++11 -stdlib=libc++ -Weverything -Wno-unused -Wno-unused-macros
+CC = gcc
+CFLAGS = -Wno-unused -Wno-unused-macros
 V = @
 
 all:
-	@echo + shell.cpp
-	$(V)$(CC) $(CFLAGS) shell.cpp includes/*.cpp -o shell
+	@echo + shell.c
+	$(V)$(CC) $(CFLAGS) shell.c -o shell
