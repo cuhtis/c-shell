@@ -1,7 +1,8 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-class Command {
+class Command
+{
   
   private:
     char *cmd;
@@ -9,7 +10,7 @@ class Command {
     Command *next;
 
   public:
-    Command(char *cmd);
+    Command(char *cmdline);
 
 };
 
