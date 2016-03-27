@@ -9,6 +9,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 #include <string.h>
+#include <pwd.h>
 
 #include "command.h"
 #include "shell.h"
@@ -35,22 +36,33 @@ int main() {
   printf("Shell v0.1\n");
   printf("--------------------\n");
   setbuf(stdout, NULL);
-  char *line;
+  char user[1024], pn[1024], *line, *homedir, *p, *cwd = pn;
   Command *cmd;
 
   // TODO: Error checking
-  char user[1024];
   getlogin_r(user, 1024);
-  char cwd[1024];
 
   // Main program loop
   while(1) {
-    // Read line
-    getcwd(cwd, 1024);
+    // Prompt
+    if ((homedir = getenv("HOME")) == NULL) {
+          homedir = getpwuid(getuid())->pw_dir;
+    }
+    getcwd(pn, 1024);
+    if (strncmp(pn, homedir, strlen(homedir)) == 0) {
+      cwd = pn + strlen(homedir) - 1;
+      *cwd = '~';
+    }
     printf(ANSI_COLOR_BLUE "%s:" ANSI_COLOR_CYAN "%s" ANSI_COLOR_RESET "$ ", user, cwd);
+
+    // Read line
     line = read_line();
     cmd = parse_line(line);
+
+    // Execute
     exec_cmd(cmd);
+
+    // Free space
     free_cmds(cmd);
     free_line(line);
   }
@@ -62,7 +74,13 @@ void exec_cmd(Command *cmd) {
   // Built ins
   if (strcmp(cmd->argv[0], "cd") == 0) {
     // TODO: Error checking
-    chdir(cmd->argv[1]);
+    if (cmd->argc < 2) {
+      char *homedir;
+      if ((homedir = getenv("HOME")) == NULL) {
+        homedir = getpwuid(getuid())->pw_dir;
+      }
+      chdir(homedir);
+    } else chdir(cmd->argv[1]);
   } else if (strcmp(cmd->argv[0], "exit") == 0) {
     // TODO: Error checking
     printf("Bye.\n");

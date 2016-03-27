@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wno-unused -Wno-unused-macros
+CFLAGS = -Wno-unused -Wno-unused-macros -g
 V = @
 EXECUTABLE = shell
 
