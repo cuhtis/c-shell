@@ -49,7 +49,6 @@ Command *parse_line(char *line) {
 
     // Tokenize arguments
     argc = 0;
-    printf("LINE: %s\n", line);
     while (*line != '\0') {
       // Trim leading whitespace
       while (*line == ' ') line++;

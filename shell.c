@@ -50,15 +50,26 @@ int main() {
     printf(ANSI_COLOR_BLUE "%s:" ANSI_COLOR_CYAN "%s" ANSI_COLOR_RESET "$ ", user, cwd);
     line = read_line();
     cmd = parse_line(line);
-    while (cmd) {
-      int i;
-      for (i = 0; i < cmd->argc; i++) {
-        printf("argv[%d]: %s (%lu)\n", i, cmd->argv[i], strlen(cmd->argv[i]));
-      }
-      cmd = cmd->next;
-    }
+    exec_cmd(cmd);
     free_cmds(cmd);
     free_line(line);
   }
 }
 
+void exec_cmd(Command *cmd) {
+  if (cmd->argc == 0) return;
+  int pid = fork();
+  
+  if (pid == 0) {
+    // Child
+    if (strcmp(cmd->argv[0], "getcwd") == 0) {
+      char my_cwd[1024];
+      getcwd(my_cwd, 1024);
+      printf("%s\n", my_cwd);
+    }
+  } else {
+    // Parent
+    int returnStatus;    
+    waitpid(pid, &returnStatus, 0); 
+  }
+}

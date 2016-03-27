@@ -5,4 +5,6 @@
  *  Header file for shell.c
  */
 
+void exec_cmd(Command *cmd);
+
 #endif
