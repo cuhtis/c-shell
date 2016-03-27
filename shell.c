@@ -42,11 +42,11 @@ int main() {
   char user[1024];
   getlogin_r(user, 1024);
   char cwd[1024];
-  getcwd(cwd, 1024);
 
   // Main program loop
   while(1) {
     // Read line
+    getcwd(cwd, 1024);
     printf(ANSI_COLOR_BLUE "%s:" ANSI_COLOR_CYAN "%s" ANSI_COLOR_RESET "$ ", user, cwd);
     line = read_line();
     cmd = parse_line(line);
@@ -58,18 +58,32 @@ int main() {
 
 void exec_cmd(Command *cmd) {
   if (cmd->argc == 0) return;
-  int pid = fork();
   
-  if (pid == 0) {
-    // Child
-    if (strcmp(cmd->argv[0], "getcwd") == 0) {
-      char my_cwd[1024];
-      getcwd(my_cwd, 1024);
-      printf("%s\n", my_cwd);
-    }
+  // Built ins
+  if (strcmp(cmd->argv[0], "cd") == 0) {
+    // TODO: Error checking
+    chdir(cmd->argv[1]);
+  } else if (strcmp(cmd->argv[0], "exit") == 0) {
+    // TODO: Error checking
+    printf("Bye.\n");
+    exit(0);
   } else {
-    // Parent
-    int returnStatus;    
-    waitpid(pid, &returnStatus, 0); 
+    // Not built in
+    int pid = fork();
+  
+    if (pid == 0) {
+      // Child
+      // TODO: Error checking
+      execvp(cmd->argv[0], cmd->argv);
+      printf("Could not locate %s\n", cmd->argv[0]);
+      exit(0);
+    } else {
+      // Parent
+      int returnStatus;    
+      waitpid(pid, &returnStatus, 0); 
+    }
   }
+
+  // Run next command
+  if (cmd->next) exec_cmd(cmd->next);
 }
