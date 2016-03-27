@@ -1,2 +1,3 @@
 *.dSYM
 shell
+*.o
