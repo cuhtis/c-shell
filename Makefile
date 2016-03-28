@@ -16,4 +16,4 @@ parser.o: parser.c
 
 clean:
 	$(V)rm parser.o shell.o shell
-	make all
+	$(V)make all

@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pwd.h>
+#include <fcntl.h>
 
 #include "command.h"
 #include "shell.h"
@@ -34,6 +35,7 @@
  */
 int main() {
   printf("Shell v0.1\n");
+  printf("Created by Curtis Li\n");
   printf("--------------------\n");
   setbuf(stdout, NULL);
   char user[1024], pn[1024], *line, *homedir, *p, *cwd = pn;
@@ -59,6 +61,21 @@ int main() {
     line = read_line();
     cmd = parse_line(line);
 
+    /*
+    Command *cur = cmd;
+    while (cur) {
+      int i;
+      printf("argc = %d\n", cur->argc);
+      for (i = 0; i < cur->argc; i++) {
+        printf("argv[%d] = %s\n", i, cur->argv[i]);
+      }
+      for (i = 0; i < 3; i++) {
+        printf("redirect[%d] = %s\n", i, cur->redirect[i]);
+      }
+      cur = cur->next;
+    }
+    */
+
     // Execute
     exec_cmd(cmd);
 
@@ -71,6 +88,8 @@ int main() {
 void exec_cmd(Command *cmd) {
   if (cmd->argc == 0) return;
   
+  int ret_status = 0;
+
   // Built ins
   if (strcmp(cmd->argv[0], "cd") == 0) {
     // TODO: Error checking
@@ -91,17 +110,56 @@ void exec_cmd(Command *cmd) {
   
     if (pid == 0) {
       // Child
+      // Manipulate stdin, stdout, stderr
+      int i, fd;
+      // stdin redirect
+      if (cmd->redirect[0]) {
+        fd = open(cmd->redirect[0], O_RDONLY);
+        dup2(fd, 0);
+        close(fd);
+      }
+      // stdout, stderr redirect
+      if (cmd->redirect[1] &&
+          cmd->redirect[2] && 
+          strcmp(cmd->redirect[1], cmd->redirect[2]) == 0) {
+        fd = open(cmd->redirect[1], O_WRONLY|O_CREAT|O_TRUNC, 0666);
+        dup2(fd, 1);
+        dup2(fd, 2);
+        close(fd);
+      } else if (cmd->redirect[1]) {
+        fd = open(cmd->redirect[1], O_WRONLY|O_CREAT|O_TRUNC, 0666);
+        printf("stdout to %s at fd %d\n", cmd->redirect[1], fd);
+        dup2(fd, 1);
+        close(fd);
+      } else if (cmd->redirect[2]) {
+        fd = open(cmd->redirect[2], O_WRONLY|O_CREAT|O_TRUNC, 0666);
+        dup2(fd, 2);
+        close(fd);
+      }
+      
       // TODO: Error checking
       execvp(cmd->argv[0], cmd->argv);
       printf("Could not locate %s\n", cmd->argv[0]);
       exit(0);
     } else {
       // Parent
-      int returnStatus;    
-      waitpid(pid, &returnStatus, 0); 
+      // Wait for child if not foreground process
+      if (cmd->op != BACKGROUND)
+        waitpid(pid, &ret_status, 0); 
+      else
+        // Assume success
+        ret_status = 0;
     }
   }
 
   // Run next command
-  if (cmd->next) exec_cmd(cmd->next);
+  if (cmd->next) {
+    // Check for boolean operators
+    if (cmd->op != AND && cmd->op != OR)
+      exec_cmd(cmd->next);
+    else if (cmd->op == AND && ret_status == 0)
+      exec_cmd(cmd->next);
+    else if (cmd->op == OR && ret_status != 0)
+      exec_cmd(cmd->next);
+  }
 }
