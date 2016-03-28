@@ -4,14 +4,14 @@
 * Note: Taking name suggestions
 
 ## Features
-* Basic command line parsing
-* Basic foreground execution
+* Command line parsing
+* Program foreground execution
 * Builtins: cd, exit
+* AND, OR support (&&, ||)
+* Input and output redirection (<, >, 2>, &>)
 
 ## TODO
 * Pipes (|)
-* Redirection (>, &>, <)
 * Background processes (&)
-* And (&&), Or (||)
 * Sub-commands
 * Other builtins
