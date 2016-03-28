@@ -14,4 +14,8 @@
 * Pipes (|)
 * Background processes (&)
 * Sub-commands
-* Other builtins
+* Other builtins (alias)
+* Customization (prompt, path)
+* Shell scripting
+* Command history
+* Command auto-completion
