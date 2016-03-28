@@ -77,7 +77,7 @@ int main() {
     */
 
     // Execute
-    exec_cmd(cmd);
+    exec_cmd(cmd, 0);
 
     // Free space
     free_cmds(cmd);
@@ -85,10 +85,11 @@ int main() {
   }
 }
 
-void exec_cmd(Command *cmd) {
+void exec_cmd(Command *cmd, int pipe_in) {
   if (cmd->argc == 0) return;
   
   int ret_status = 0;
+  int i, fd, pipe_fd[2];
 
   // Built ins
   if (strcmp(cmd->argv[0], "cd") == 0) {
@@ -106,12 +107,32 @@ void exec_cmd(Command *cmd) {
     exit(0);
   } else {
     // Not built in
+    
+    // TODO: Piping
+    if (cmd->op == PIPE) {
+      // TODO: Error Checking
+      pipe(pipe_fd);
+    }
+   
+    // TODO: Use a switch() instead?
     int pid = fork();
   
     if (pid == 0) {
       // Child
-      // Manipulate stdin, stdout, stderr
-      int i, fd;
+
+      // Pipes
+      if (cmd->op == PIPE) {
+        close(pipe_fd[0]);
+        close(1);
+        dup2(pipe_fd[1], 1);
+        close(pipe_fd[1]);
+      }
+      if (pipe_in) {
+        close(0);
+        dup2(pipe_in, 0);
+        close(pipe_in);
+      }
+
       // stdin redirect
       if (cmd->redirect[0]) {
         fd = open(cmd->redirect[0], O_RDONLY);
@@ -142,6 +163,13 @@ void exec_cmd(Command *cmd) {
       exit(0);
     } else {
       // Parent
+
+      // Pipes
+      if (cmd->op == PIPE) {
+        close(pipe_fd[1]);
+        pipe_in = pipe_fd[0];
+      } else pipe_in = 0;
+
       // Wait for child if not foreground process
       if (cmd->op != BACKGROUND)
         waitpid(pid, &ret_status, 0); 
@@ -155,10 +183,10 @@ void exec_cmd(Command *cmd) {
   if (cmd->next) {
     // Check for boolean operators
     if (cmd->op != AND && cmd->op != OR)
-      exec_cmd(cmd->next);
+      exec_cmd(cmd->next, pipe_in);
     else if (cmd->op == AND && ret_status == 0)
-      exec_cmd(cmd->next);
+      exec_cmd(cmd->next, pipe_in);
     else if (cmd->op == OR && ret_status != 0)
-      exec_cmd(cmd->next);
+      exec_cmd(cmd->next, pipe_in);
   }
 }

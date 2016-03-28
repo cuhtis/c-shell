@@ -5,6 +5,6 @@
  *  Header file for shell.c
  */
 
-void exec_cmd(Command *cmd);
+void exec_cmd(Command *cmd, int pipe_in);
 
 #endif

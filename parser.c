@@ -185,6 +185,9 @@ cmd_tkn is_special(char *c) {
   } else if (strncmp(c, "<", 1) == 0) {
     tkn.op_len = 1;
     tkn.op = REDIRECT_IN;
+  } else if (strncmp(c, "|", 1) == 0) {
+    tkn.op_len = 1;
+    tkn.op = PIPE;
   } else if (strncmp(c, "&", 1) == 0) {
     tkn.op_len = 1;
     tkn.op = BACKGROUND;

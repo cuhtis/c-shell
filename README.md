@@ -6,7 +6,7 @@
 ## Features
 * Command line parsing
 * Program foreground execution
-* Builtins: cd, exit
+* Builtins: cd, exit, pwd
 * AND, OR support (&&, ||)
 * Input and output redirection (<, >, 2>, &>)
 
