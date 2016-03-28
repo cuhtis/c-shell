@@ -143,12 +143,23 @@ void free_line(char *line) {
 void free_cmds(Command *cmd) {
   if (!cmd) return;
   int i;
+
+  // Free args
   for (i = 0; i < cmd->argc; i++)
     free(cmd->argv[i]);
-  for (i = 0; i < 3; i++)
-    if (cmd->redirect[i])
+
+  // Free redirect filenames
+  for (i = 0; i < 3; i++) {
+    if (cmd->redirect[i]) {
+      if (i == 1 && cmd->redirect[2] && strcmp(cmd->redirect[1], cmd->redirect[2]) == 0) continue;
       free(cmd->redirect[i]);
+    }
+  }
+
+  // Free next cmd
   if (cmd->next) free_cmds(cmd->next);
+
+  // Free cmd
   free(cmd);
 }
 

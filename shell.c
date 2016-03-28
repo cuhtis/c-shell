@@ -128,7 +128,6 @@ void exec_cmd(Command *cmd) {
         close(fd);
       } else if (cmd->redirect[1]) {
         fd = open(cmd->redirect[1], O_WRONLY|O_CREAT|O_TRUNC, 0666);
-        printf("stdout to %s at fd %d\n", cmd->redirect[1], fd);
         dup2(fd, 1);
         close(fd);
       } else if (cmd->redirect[2]) {
