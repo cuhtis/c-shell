@@ -20,3 +20,4 @@
 * Command history
 * Command auto-completion
 * Bidirectional piping
+* Advanced signal handling
