@@ -5,16 +5,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/uio.h>
 #include <unistd.h>
 #include <string.h>
 #include <pwd.h>
-#include <fcntl.h>
 
 #include "command.h"
 #include "shell.h"
 #include "parser.h"
+#include "executer.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -82,111 +80,5 @@ int main() {
     // Free space
     free_cmds(cmd);
     free_line(line);
-  }
-}
-
-void exec_cmd(Command *cmd, int pipe_in) {
-  if (cmd->argc == 0) return;
-  
-  int ret_status = 0;
-  int i, fd, pipe_fd[2];
-
-  // Built ins
-  if (strcmp(cmd->argv[0], "cd") == 0) {
-    // TODO: Error checking
-    if (cmd->argc < 2) {
-      char *homedir;
-      if ((homedir = getenv("HOME")) == NULL) {
-        homedir = getpwuid(getuid())->pw_dir;
-      }
-      chdir(homedir);
-    } else chdir(cmd->argv[1]);
-  } else if (strcmp(cmd->argv[0], "exit") == 0) {
-    // TODO: Error checking
-    printf("Bye.\n");
-    exit(0);
-  } else {
-    // Not built in
-    
-    // TODO: Piping
-    if (cmd->op == PIPE) {
-      // TODO: Error Checking
-      pipe(pipe_fd);
-    }
-   
-    // TODO: Use a switch() instead?
-    int pid = fork();
-  
-    if (pid == 0) {
-      // Child
-
-      // Pipes
-      if (cmd->op == PIPE) {
-        close(pipe_fd[0]);
-        close(1);
-        dup2(pipe_fd[1], 1);
-        close(pipe_fd[1]);
-      }
-      if (pipe_in) {
-        close(0);
-        dup2(pipe_in, 0);
-        close(pipe_in);
-      }
-
-      // stdin redirect
-      if (cmd->redirect[0]) {
-        fd = open(cmd->redirect[0], O_RDONLY);
-        dup2(fd, 0);
-        close(fd);
-      }
-      // stdout, stderr redirect
-      if (cmd->redirect[1] &&
-          cmd->redirect[2] && 
-          strcmp(cmd->redirect[1], cmd->redirect[2]) == 0) {
-        fd = open(cmd->redirect[1], O_WRONLY|O_CREAT|O_TRUNC, 0666);
-        dup2(fd, 1);
-        dup2(fd, 2);
-        close(fd);
-      } else if (cmd->redirect[1]) {
-        fd = open(cmd->redirect[1], O_WRONLY|O_CREAT|O_TRUNC, 0666);
-        dup2(fd, 1);
-        close(fd);
-      } else if (cmd->redirect[2]) {
-        fd = open(cmd->redirect[2], O_WRONLY|O_CREAT|O_TRUNC, 0666);
-        dup2(fd, 2);
-        close(fd);
-      }
-      
-      // TODO: Error checking
-      execvp(cmd->argv[0], cmd->argv);
-      printf("Could not locate %s\n", cmd->argv[0]);
-      exit(0);
-    } else {
-      // Parent
-
-      // Pipes
-      if (cmd->op == PIPE) {
-        close(pipe_fd[1]);
-        pipe_in = pipe_fd[0];
-      } else pipe_in = 0;
-
-      // Wait for child if not foreground process
-      if (cmd->op != BACKGROUND)
-        waitpid(pid, &ret_status, 0); 
-      else
-        // Assume success
-        ret_status = 0;
-    }
-  }
-
-  // Run next command
-  if (cmd->next) {
-    // Check for boolean operators
-    if (cmd->op != AND && cmd->op != OR)
-      exec_cmd(cmd->next, pipe_in);
-    else if (cmd->op == AND && ret_status == 0)
-      exec_cmd(cmd->next, pipe_in);
-    else if (cmd->op == OR && ret_status != 0)
-      exec_cmd(cmd->next, pipe_in);
   }
 }
