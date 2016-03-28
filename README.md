@@ -9,9 +9,9 @@
 * Builtins: cd, exit, pwd
 * AND, OR support (&&, ||)
 * Input and output redirection (<, >, 2>, &>)
+* Pipes (|)
 
 ## TODO
-* Pipes (|)
 * Background processes (&)
 * Sub-commands
 * Other builtins (alias)
@@ -19,3 +19,4 @@
 * Shell scripting
 * Command history
 * Command auto-completion
+* Bidirectional piping
