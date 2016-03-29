@@ -1,23 +1,38 @@
+# Compiler/linker options
 CC = gcc
-CFLAGS = -Wno-unused -Wno-unused-macros -g
+CFLAGS = -c -Wno-unused -Wno-unused-macros -g
+LDFLAGS = 
 V = @
-EXECUTABLE = shell
 
-all: shell.o parser.o executer.o
-	$(V)$(CC) $(CFLAGS) shell.c parser.c executer.c -o shell
+# Folders
+SRC_DIR = src
+OBJ_DIR = obj
+BIN_DIR = .
 
-shell.o: shell.c 
-	@echo + shell.c
-	$(V)$(CC) $(CFLAGS) -c shell.c
+# Files
+SRC = shell.c\
+			executer.c\
+		 	parser.c
+EXE = shell
+SRC_FILES = $(SRC:%.c=$(SRC_DIR)/%.c)
+OBJ_FILES = $(SRC:%.c=$(OBJ_DIR)/%.o)
+EXE_FILES = $(EXE:%=$(BIN_DIR)/%)
 
-parser.o: parser.c 
-	@echo + parser.c
-	$(V)$(CC) $(CFLAGS) -c parser.c
+# Phony
+.PHONY: build clean
 
-executer.o: executer.c 
-	@echo + executer.c
-	$(V)$(CC) $(CFLAGS) -c executer.c
+# Make
+
+$(EXE_FILES): $(OBJ_FILES)
+	$(V)$(CC) $(LDFLAGS) -o $@ $^
+	@echo Build successful!
+
+$(OBJ_FILES): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@echo + $<
+	$(V)mkdir -p $(@D)
+	$(V)$(CC) $(CFLAGS) -o $@ $<
+
+build: $(EXE_FILES)
 
 clean:
-	$(V)rm parser.o shell.o executer.o shell
-	$(V)make all
+	rm -Rf $(OBJ_DIR) $(EXE)
