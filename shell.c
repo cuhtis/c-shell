@@ -13,6 +13,7 @@
 #include "shell.h"
 #include "parser.h"
 #include "executer.h"
+#include "debug.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -35,31 +36,32 @@ int main() {
   printf("Shell v0.1\n");
   printf("Created by Curtis Li\n");
   printf("--------------------\n");
-  setbuf(stdout, NULL);
   char user[1024], pn[1024], *line, *homedir, *p, *cwd = pn;
   Command *cmd;
+  struct passwd *pw;
 
-  // TODO: Error checking
-  getlogin_r(user, 1024);
+  if (getlogin_r(user, 1024) != 0) panic("getlogin_r");
 
   // Main program loop
   while(1) {
     // Prompt
     if ((homedir = getenv("HOME")) == NULL) {
-          homedir = getpwuid(getuid())->pw_dir;
+      if ((pw = getpwuid(getuid())))
+        homedir = pw->pw_dir;
     }
-    getcwd(pn, 1024);
+    if(!getcwd(pn, 1024)) panic("getcwd");
     if (strncmp(pn, homedir, strlen(homedir)) == 0) {
       cwd = pn + strlen(homedir) - 1;
       *cwd = '~';
     }
     printf(ANSI_COLOR_BLUE "%s:" ANSI_COLOR_CYAN "%s" ANSI_COLOR_RESET "$ ", user, cwd);
+    if (fflush(stdout) != 0) perror("fflush");
 
     // Read line
     line = read_line();
     cmd = parse_line(line);
 
-    /*
+#ifdef DEBUG
     Command *cur = cmd;
     while (cur) {
       int i;
@@ -72,7 +74,7 @@ int main() {
       }
       cur = cur->next;
     }
-    */
+#endif
 
     // Execute
     exec_cmd(cmd, 0);
