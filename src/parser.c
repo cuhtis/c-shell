@@ -6,22 +6,22 @@
 
 #include "command.h"
 #include "parser.h"
+#include "debug.h"
 
-#define BLOCK_SIZE 1024
 #define MAX_CMDS 128
 
 char *read_line() {
   ssize_t size = 0, bytes;
   int blocks = 1;
-  char *line = (char *) malloc(blocks * BLOCK_SIZE);
+  char *line = (char *) malloc(blocks * BUFSIZ);
    
-  // FIXME: When input size is a multiple of BLOCK_SIZE, will try to read more
+  // FIXME: When input size is a multiple of BUFSIZ, will try to read more
   // Read, allocate more space if needed
   while (1) {
-    bytes = read(0, line+size, BLOCK_SIZE);
+    bytes = read(0, line+size, BUFSIZ);
     size += bytes;
-    if (bytes != BLOCK_SIZE) break;
-    line = (char *) realloc(line, ++blocks *  BLOCK_SIZE);
+    if (bytes != BUFSIZ) break;
+    line = (char *) realloc(line, ++blocks *  BUFSIZ);
   }
 
   // Null terminate (Note: We may still have the newline char)

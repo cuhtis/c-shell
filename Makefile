@@ -12,6 +12,7 @@ BIN_DIR = .
 # Files
 SRC = shell.c\
 			executer.c\
+			builtin.c\
 		 	parser.c
 EXE = shell
 SRC_FILES = $(SRC:%.c=$(SRC_DIR)/%.c)

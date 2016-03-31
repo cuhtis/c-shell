@@ -7,11 +7,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <pwd.h>
 #include <fcntl.h>
 
 #include "command.h"
 #include "executer.h"
+#include "builtin.h"
 #include "debug.h"
 
 void exec_cmd(Command *cmd, int pipe_in) {
@@ -112,19 +112,7 @@ static void handle_redirect(Command *cmd) {
 
 static int handle_builtin(Command *cmd) {
   if (strcmp(cmd->argv[0], "cd") == 0) {
-    // Builtin: cd
-    if (cmd->argc < 2) {
-      // cd to $HOME
-      char *homedir;
-      struct passwd *pw;
-      if ((homedir = getenv("HOME")) == NULL) {
-        if ((pw = getpwuid(getuid())))
-          homedir = pw->pw_dir;
-      }
-      if (chdir(homedir) < 0) perror("chdir");
-    } else if (chdir(cmd->argv[1]) < 0) perror("chdir");
-
-    return 1;
+    return builtin_cd(cmd);
   } else if (strcmp(cmd->argv[0], "exit") == 0) {
     // Builtin: exit
     printf("Bye.\n");
